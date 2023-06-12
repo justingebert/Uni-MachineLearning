@@ -120,23 +120,25 @@ public class CreditDataset implements Dataset {
 	 */
 	public Dataset getSubset(int category) {
 		
-		// TODO Find all the indices of the lines in which the desired category occurs. 
-		// Search as many other lines with a different category. Remove indices if
-		// necessary, to ensure the size of both set are the same
-		int[] rowIndizies = new int[] { 1 };
+		// TODO Find all the indices of the lines in which the desired category occurs.
+		//int[] rowIndizies = new int[] { 1 };
 
 		List<Integer> rowIndices = new ArrayList<>();
+		List<Integer> rowIndicesInverse = new ArrayList<>();
 		for (int i = 0; i < yTrain.length; i++) {
 			if (yTrain.get(i) == category) {
 				rowIndices.add(i);
+			} else {
+				rowIndicesInverse.add(i);
 			}
 		}
 
-		// Get the desired data points and binarize the Y-values
-		FloatMatrix xTrainSubset = xTrain.getRows(rowIndices);
-		FloatMatrix yTrainSubset = yTrain.getRows(rowIndices).eq(category);
-		
-		// Get the desired data points and binarize the Y-values
+		Collections.shuffle(rowIndicesInverse, rnd);
+		rowIndices.addAll(rowIndicesInverse.subList(0, rowIndices.size()));
+
+		int [] rowIndizies = rowIndices.stream().mapToInt(i -> i).toArray();
+
+
 		return new Dataset() {
 			
 			@Override
