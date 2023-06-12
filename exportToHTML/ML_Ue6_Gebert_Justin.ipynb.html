@@ -1,0 +1,169 @@
+<html>
+<head>
+<title>ML_Ue6_Gebert_Justin.ipynb</title>
+<meta http-equiv="Content-Type" content="text/html; charset=utf-8">
+<style type="text/css">
+.s0 { color: #5c6370;}
+.s1 { color: #c678dd;}
+.s2 { color: #abb2bf;}
+.s3 { color: #98c379;}
+.s4 { color: #d19a66;}
+</style>
+</head>
+<body bgcolor="#282c34">
+<table CELLSPACING=0 CELLPADDING=5 COLS=1 WIDTH="100%" BGCOLOR="#606060" >
+<tr><td><center>
+<font face="Arial, Helvetica" color="#000000">
+ML_Ue6_Gebert_Justin.ipynb</font>
+</center></td></tr></table>
+<pre><span class="s0">#%% 
+</span><span class="s1">import </span><span class="s2">numpy </span><span class="s1">as </span><span class="s2">np</span>
+<span class="s1">import </span><span class="s2">matplotlib.pyplot </span><span class="s1">as </span><span class="s2">plt</span>
+<span class="s1">from </span><span class="s2">sklearn.metrics </span><span class="s1">import </span><span class="s2">mean_squared_error</span>
+
+<span class="s2">credit = np.genfromtxt(</span><span class="s3">&quot;../data/german_credit.csv&quot;</span><span class="s2">, delimiter=</span><span class="s3">&quot;,&quot;</span><span class="s2">, skip_header=</span><span class="s1">True</span><span class="s2">)</span>
+<span class="s2">dataAmmount = np.shape(credit)[</span><span class="s4">0</span><span class="s2">]</span>
+
+<span class="s2">creditability = credit[:, </span><span class="s4">0</span><span class="s2">]</span>
+
+
+<span class="s2">features = credit[:, </span><span class="s4">1</span><span class="s2">:]</span>
+<span class="s2">features_min = np.min(features, axis=</span><span class="s4">0</span><span class="s2">)</span>
+<span class="s2">features_max = np.max(features, axis=</span><span class="s4">0</span><span class="s2">)</span>
+<span class="s2">features_nrm = (features - features_min) / (features_max - features_min)</span>
+
+
+
+<span class="s0">#%% 
+</span><span class="s2">iterations = </span><span class="s4">1000</span>
+<span class="s2">learning_rate = </span><span class="s4">0.03</span>
+
+<span class="s0">#generate random parameters for each feature (column)</span>
+<span class="s1">def </span><span class="s2">parameters(data, seed):</span>
+    <span class="s2">np.random.seed(seed)</span>
+    <span class="s1">return </span><span class="s2">np.random.rand(data.shape[</span><span class="s4">1</span><span class="s2">])</span>
+
+<span class="s0">#calculate the prediction for each row</span>
+<span class="s1">def </span><span class="s2">hypothesis (x, coefficients):</span>
+    <span class="s1">return </span><span class="s2">np.matmul(x, coefficients)</span>
+
+<span class="s0">#def loss_function(predictions, target):</span>
+<span class="s0">#    return return -np.mean(target * np.log(predictions) + (1 - target) * np.log(1 - predictions))</span>
+
+<span class="s2">bias = np.random.randn()</span>
+<span class="s2">prediction_rates = np.empty(iterations);</span>
+
+<span class="s0">#TODO 1: linear Regression for Credit</span>
+<span class="s2">theta = parameters(features_nrm, </span><span class="s4">1</span><span class="s2">)</span>
+<span class="s1">for </span><span class="s2">i </span><span class="s1">in </span><span class="s2">range(iterations):</span>
+        <span class="s2">h = hypothesis(features_nrm, theta)</span>
+        <span class="s2">binary_h = np.where(h &gt; </span><span class="s4">0.5</span><span class="s2">, </span><span class="s4">1</span><span class="s2">, </span><span class="s4">0</span><span class="s2">)</span>
+        <span class="s2">prediction_error = np.sum(binary_h - creditability)</span>
+        <span class="s2">prediction_rate = (np.shape(creditability)[</span><span class="s4">0</span><span class="s2">] - prediction_error) / np.shape(creditability)[</span><span class="s4">0</span><span class="s2">] * </span><span class="s4">100</span>
+        <span class="s2">prediction_rates[i] = prediction_rate</span>
+        <span class="s2">diff = h - creditability</span>
+
+        <span class="s2">theta_delta = np.matmul(features_nrm.T, diff)</span>
+        <span class="s2">theta_delta_nrm = learning_rate / np.shape(features_nrm)[</span><span class="s4">0</span><span class="s2">] * theta_delta</span>
+        <span class="s2">theta = np.subtract(theta, theta_delta_nrm)</span>
+
+
+        <span class="s0">#TODO fix the stopping condition</span>
+        <span class="s0"># sum_of_abs_changes = np.sum(np.abs(theta_delta_nrm))</span>
+        <span class="s0"># if sum_of_abs_changes &lt; 0.0001:</span>
+        <span class="s0">#     theta = parameters(features_nrm, i)</span>
+        <span class="s0">#     break</span>
+<span class="s0">#%% 
+</span><span class="s2">x = np.linspace(</span><span class="s4">0</span><span class="s2">, iterations, iterations)</span>
+<span class="s2">plt.ylim(</span><span class="s4">0</span><span class="s2">, </span><span class="s4">100</span><span class="s2">)</span>
+
+<span class="s2">plt.plot(x,prediction_rates, label=</span><span class="s3">'prediction rate linear regression'</span><span class="s2">)</span>
+
+<span class="s2">plt.xlabel(</span><span class="s3">'iteration'</span><span class="s2">)</span>
+<span class="s2">plt.ylabel(</span><span class="s3">'prediction rate'</span><span class="s2">)</span>
+<span class="s2">plt.title(</span><span class="s3">'Training and Testing'</span><span class="s2">)</span>
+<span class="s2">plt.legend()</span>
+<span class="s0">#%% 
+#TODO 2: logistic Regression for Credit</span>
+
+<span class="s1">def </span><span class="s2">sigmoid(x):</span>
+    <span class="s1">return </span><span class="s4">1 </span><span class="s2">/ (</span><span class="s4">1 </span><span class="s2">+ np.exp(-x))</span>
+
+<span class="s1">def </span><span class="s2">hypothesisSigmoid (x, coefficients):</span>
+    <span class="s1">return </span><span class="s2">sigmoid(np.matmul(x, coefficients))</span>
+
+<span class="s2">theta = parameters(features_nrm, </span><span class="s4">1</span><span class="s2">)</span>
+<span class="s1">for </span><span class="s2">i </span><span class="s1">in </span><span class="s2">range(iterations):</span>
+        <span class="s2">h = hypothesisSigmoid(features_nrm, theta)</span>
+        <span class="s2">binary_h = np.where(h &gt; </span><span class="s4">0.5</span><span class="s2">, </span><span class="s4">1</span><span class="s2">, </span><span class="s4">0</span><span class="s2">)</span>
+        <span class="s2">prediction_error = np.sum(binary_h - creditability)</span>
+        <span class="s2">prediction_rate = (np.shape(creditability)[</span><span class="s4">0</span><span class="s2">] - prediction_error) / np.shape(creditability)[</span><span class="s4">0</span><span class="s2">] * </span><span class="s4">100</span>
+        <span class="s2">prediction_rates[i] = prediction_rate</span>
+        <span class="s2">diff = h - creditability</span>
+
+        <span class="s2">theta_delta = np.matmul(features_nrm.T, diff)</span>
+        <span class="s2">theta_delta_nrm = learning_rate / np.shape(features_nrm)[</span><span class="s4">0</span><span class="s2">] * theta_delta</span>
+        <span class="s2">theta = np.subtract(theta, theta_delta_nrm)</span>
+<span class="s0">#%% 
+</span><span class="s2">x = np.linspace(</span><span class="s4">0</span><span class="s2">, iterations, iterations)</span>
+<span class="s2">plt.ylim(</span><span class="s4">0</span><span class="s2">, </span><span class="s4">100</span><span class="s2">)</span>
+
+<span class="s2">plt.plot(x,prediction_rates, label=</span><span class="s3">'prediction rate logistic regression'</span><span class="s2">)</span>
+
+<span class="s2">plt.xlabel(</span><span class="s3">'iteration'</span><span class="s2">)</span>
+<span class="s2">plt.ylabel(</span><span class="s3">'prediction rate'</span><span class="s2">)</span>
+<span class="s2">plt.title(</span><span class="s3">'Training and Testing'</span><span class="s2">)</span>
+<span class="s2">plt.legend()</span>
+<span class="s0">#%% 
+#TODO 3: split Data in Train and Test</span>
+<span class="s1">from </span><span class="s2">sklearn.model_selection </span><span class="s1">import </span><span class="s2">train_test_split</span>
+
+<span class="s2">X_train, X_test, y_train, y_test = train_test_split(</span>
+    <span class="s2">features_nrm, creditability, test_size=</span><span class="s4">0.1</span><span class="s2">, stratify=creditability, random_state=</span><span class="s4">42</span>
+<span class="s2">)</span>
+
+<span class="s2">train_size = X_train.shape[</span><span class="s4">0</span><span class="s2">]</span>
+<span class="s2">test_size = X_test.shape[</span><span class="s4">0</span><span class="s2">]</span>
+
+<span class="s2">train_prediction_rates = np.empty(iterations)</span>
+<span class="s2">test_prediction_rates = np.empty(iterations)</span>
+
+<span class="s2">theta = parameters(X_train, </span><span class="s4">1</span><span class="s2">)</span>
+<span class="s1">for </span><span class="s2">i </span><span class="s1">in </span><span class="s2">range(iterations):</span>
+    <span class="s2">h_train = hypothesis(X_train, theta)</span>
+    <span class="s2">binary_h_train = np.where(h_train &gt; </span><span class="s4">0.5</span><span class="s2">, </span><span class="s4">1</span><span class="s2">, </span><span class="s4">0</span><span class="s2">)</span>
+    <span class="s2">train_prediction_error = np.sum(binary_h_train - y_train)</span>
+    <span class="s2">train_prediction_rate = (train_size - train_prediction_error) / train_size * </span><span class="s4">100</span>
+    <span class="s2">train_prediction_rates[i] = train_prediction_rate</span>
+    <span class="s2">diff = h_train - y_train</span>
+
+    <span class="s2">theta_delta = np.matmul(X_train.T, diff)</span>
+    <span class="s2">theta_delta_nrm = learning_rate / train_size * theta_delta</span>
+    <span class="s2">theta = np.subtract(theta, theta_delta_nrm)</span>
+
+    <span class="s0"># Calculate prediction rate for the test set</span>
+    <span class="s2">h_test = hypothesis(X_test, theta)</span>
+    <span class="s2">binary_h_test = np.where(h_test &gt; </span><span class="s4">0.5</span><span class="s2">, </span><span class="s4">1</span><span class="s2">, </span><span class="s4">0</span><span class="s2">)</span>
+    <span class="s2">test_prediction_error = np.sum(binary_h_test - y_test)</span>
+    <span class="s2">test_prediction_rate = (test_size - test_prediction_error) / test_size * </span><span class="s4">100</span>
+    <span class="s2">test_prediction_rates[i] = test_prediction_rate</span>
+
+<span class="s0">#%% 
+</span>
+<span class="s2">x = np.linspace(</span><span class="s4">0</span><span class="s2">, iterations, iterations)</span>
+<span class="s2">plt.ylim(</span><span class="s4">0</span><span class="s2">, </span><span class="s4">100</span><span class="s2">)</span>
+
+<span class="s0">#plt.plot(x,prediction_rates, label='prediction rate regression')</span>
+
+<span class="s2">plt.plot(x, train_prediction_rates, label=</span><span class="s3">'Training set'</span><span class="s2">)</span>
+<span class="s2">plt.plot(x, test_prediction_rates, label=</span><span class="s3">'Test set'</span><span class="s2">)</span>
+
+
+<span class="s2">plt.xlabel(</span><span class="s3">'iteration'</span><span class="s2">)</span>
+<span class="s2">plt.ylabel(</span><span class="s3">'prediction rate'</span><span class="s2">)</span>
+<span class="s2">plt.title(</span><span class="s3">'Training and Testing'</span><span class="s2">)</span>
+<span class="s2">plt.legend()</span>
+<span class="s0">#%% 
+</span></pre>
+</body>
+</html>
