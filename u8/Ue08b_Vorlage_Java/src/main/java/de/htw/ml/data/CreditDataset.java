@@ -1,11 +1,10 @@
 package de.htw.ml.data;
 
-import java.io.IOException;
-import java.util.Arrays;
-import java.util.Random;
-import java.util.stream.IntStream;
-
 import org.jblas.FloatMatrix;
+
+import java.io.IOException;
+import java.util.*;
+import java.util.stream.IntStream;
 
 /**
  * There are a lot TODOs here. 
@@ -27,7 +26,7 @@ public class CreditDataset implements Dataset {
 	
 	public CreditDataset() throws IOException {
 		
-		int predictColumn = 15; // typ of apartment
+		int predictColumn = 15; // type of apartment
 		FloatMatrix data = FloatMatrix.loadCSVFile("german_credit_jblas.csv");
 		
 		// List with all categories in the predictColumn
@@ -58,8 +57,35 @@ public class CreditDataset implements Dataset {
 		System.out.println("Use "+testDataCount+" as test data with "+testDataPerCategory+" elements per category.\n");
 		
 		// TODO replace these lines with the real train and test data
-		xTrain = xTest = xNorm;
-		yTrain = yTest = y;
+		// Split the data into training and test sets
+		List<Integer> testIndices = new ArrayList<>();
+		List<Integer> trainIndices = new ArrayList<>();
+
+		for (int category : categories) {
+			List<Integer> categoryIndices = new ArrayList<>();
+			for (int i = 0; i < y.length; i++) {
+				if (y.get(i) == category) {
+					categoryIndices.add(i);
+				}
+			}
+
+			Collections.shuffle(categoryIndices, rnd);
+			testIndices.addAll(categoryIndices.subList(0, testDataPerCategory));
+			trainIndices.addAll(categoryIndices.subList(testDataPerCategory, categoryIndices.size()));
+		}
+
+		Collections.shuffle(testIndices, rnd);
+		Collections.shuffle(trainIndices, rnd);
+
+		int[] testIndicesArray = testIndices.stream().mapToInt(i -> i).toArray();
+		int[] trainIndicesArray = trainIndices.stream().mapToInt(i -> i).toArray();
+
+		// Set the train and test data
+		xTrain = xNorm.getRows(trainIndicesArray);
+		yTrain = y.getRows(trainIndicesArray);
+		xTest = xNorm.getRows(testIndicesArray);
+		yTest = y.getRows(testIndicesArray);
+
 	}
 	
 	public int[] getCategories() {
@@ -79,12 +105,29 @@ public class CreditDataset implements Dataset {
 	 */
 	public Dataset getSubset(int category) {
 		
-		// TODO Find all the indices of the lines in which the desired category occurs. 
-		// Search as many other lines with a different category. Remove indices if
-		// necessary, to ensure the size of both set are the same
-		int[] rowIndizies = new int[] { 1 };
-		
-		// Get the desired data points and binarize the Y-values
+		// TODO Find all the indices of the lines in which the desired category occurs.
+		//int[] rowIndizies = new int[] { 1 };
+
+		List<Integer> rowIndices = new ArrayList<>();
+		List<Integer> rowIndicesInverse = new ArrayList<>();
+		for (int i = 0; i < yTrain.length; i++) {
+			if (yTrain.get(i) == category) {
+				rowIndices.add(i);
+			} else {
+				rowIndicesInverse.add(i);
+			}
+		}
+
+		Collections.shuffle(rowIndicesInverse, rnd);
+		if(rowIndices.size() > rowIndicesInverse.size()){
+			rowIndices = rowIndices.subList(0, rowIndicesInverse.size());
+		}
+
+		rowIndices.addAll(rowIndicesInverse.subList(0, rowIndices.size()));
+
+		int [] rowIndizies = rowIndices.stream().mapToInt(i -> i).toArray();
+
+
 		return new Dataset() {
 			
 			@Override
