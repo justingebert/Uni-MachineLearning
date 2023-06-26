@@ -44,11 +44,11 @@ public class LogisticRegression {
 			FloatMatrix hypothesis = predict(xTrain, theta);
 			FloatMatrix error = hypothesis.sub(yTrain);
 			FloatMatrix gradient = xTrain.transpose().mmul(error);
-			FloatMatrix gradnient_nrm = gradient.mul(learnRate / yTrain.length);
-			theta = theta.sub(gradnient_nrm);
+			FloatMatrix gradient_norm = gradient.mul(learnRate / (float) yTrain.length);
+			theta = theta.sub(gradient_norm);
 			
 			// TODO fill the prediction rate and train error arrays
-			predictionRates[iteration] = predictionRate(predict(xTest, theta), yTest);
+			predictionRates[iteration] = predictionRate(predict(xTest,theta), yTest);
 			trainErrors[iteration] = cost(hypothesis, yTrain);
 
 			if (predictionRates[iteration] > bestPredictionRate) {
@@ -83,7 +83,7 @@ public class LogisticRegression {
 		//Todo look up again
 		int m = y.length;
 		FloatMatrix cost = y.mul(-1).mul(log(prediction)).sub(y.mul(-1).add(1).mul(log(prediction.mul(-1).add(1))));
-		return -cost.sum() / m;
+		return cost.sum() / m;
 	}
 
 	/**
@@ -94,7 +94,20 @@ public class LogisticRegression {
 	 * @return
 	 */
 	public static float predictionRate(FloatMatrix prediction, FloatMatrix y) {
-		return prediction.eq(y).sum() / (float) y.length;
+
+		int m = y.length;
+		int correctPredictions = 0;
+		for (int i = 0; i < m; i++) {
+			float predictedLabel = prediction.get(i);
+			float trueLabel = y.get(i);
+
+
+			if ((predictedLabel >= 0.5 && trueLabel == 1) || (predictedLabel < 0.5 && trueLabel == 0)) {
+				correctPredictions++;
+			}
+		}
+
+		return correctPredictions / (float) m * 100;
 	}
 
 	/**

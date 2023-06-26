@@ -2,6 +2,8 @@ package de.htw.ml;
 
 import org.jblas.FloatMatrix;
 
+import static org.jblas.MatrixFunctions.log;
+
 /**
  * A lot of TODOs here.
  * This is a simple logistic regression model.
@@ -38,11 +40,21 @@ public class LogisticRegression {
 		// training
 		for (int iteration = 0; iteration < trainingIterations; iteration++) {
 			
-			// TODO training using the logistic regression	
+			// TODO training using the logistic regression
+			FloatMatrix hypothesis = predict(xTrain, theta);
+			FloatMatrix error = hypothesis.sub(yTrain);
+			FloatMatrix gradient = xTrain.transpose().mmul(error);
+			FloatMatrix gradient_norm = gradient.mul(learnRate / (float) yTrain.length);
+			theta = theta.sub(gradient_norm);
 			
 			// TODO fill the prediction rate and train error arrays
-			predictionRates[iteration] = 0;
-			trainErrors[iteration] = 0;
+			predictionRates[iteration] = predictionRate(predict(xTest,theta), yTest);
+			trainErrors[iteration] = cost(hypothesis, yTrain);
+
+			if (predictionRates[iteration] > bestPredictionRate) {
+				bestPredictionRate = predictionRates[iteration];
+				bestTheta = theta.dup();
+			}
 		}
 		
 		return bestTheta;
@@ -56,8 +68,8 @@ public class LogisticRegression {
 	 * @return
 	 */
 	public static FloatMatrix predict(FloatMatrix x, FloatMatrix theta) {
-		// TODO Auto-generated method stub
-		return null;
+		FloatMatrix z = x.mmul(theta);
+		return sigmoid(z);
 	}
 		
 	/**
@@ -68,8 +80,10 @@ public class LogisticRegression {
 	 * @return
 	 */
 	public static float cost(FloatMatrix prediction, FloatMatrix y) {
-		// TODO Auto-generated method stub
-		return 0;
+		//Todo look up again
+		int m = y.length;
+		FloatMatrix cost = y.mul(-1).mul(log(prediction)).sub(y.mul(-1).add(1).mul(log(prediction.mul(-1).add(1))));
+		return cost.sum() / m;
 	}
 
 	/**
@@ -80,8 +94,20 @@ public class LogisticRegression {
 	 * @return
 	 */
 	public static float predictionRate(FloatMatrix prediction, FloatMatrix y) {
-		// TODO Auto-generated method stub
-		return 0;
+
+		int m = y.length;
+		int correctPredictions = 0;
+		for (int i = 0; i < m; i++) {
+			float predictedLabel = prediction.get(i);
+			float trueLabel = y.get(i);
+
+
+			if ((predictedLabel >= 0.5 && trueLabel == 1) || (predictedLabel < 0.5 && trueLabel == 0)) {
+				correctPredictions++;
+			}
+		}
+
+		return correctPredictions / (float) m * 100;
 	}
 
 	/**
@@ -108,7 +134,7 @@ public class LogisticRegression {
 	 * @param input
 	 * @return
 	 */
-	public static FloatMatrix sigmoidi(FloatMatrix input) {
+	public static FloatMatrix sigmoid(FloatMatrix input) {
 		for (int i = 0; i < input.data.length; i++)
 			input.data[i] = (float) (1. / ( 1. + Math.exp(-input.data[i]) ));
 		return input;

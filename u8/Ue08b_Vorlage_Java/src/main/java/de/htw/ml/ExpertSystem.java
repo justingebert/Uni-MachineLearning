@@ -87,10 +87,7 @@ public class ExpertSystem {
 			s.putRow(i, LogisticRegression.predict(xTest, thetas[i]));
 		int[] bestCategory = s.rowArgmaxs();
 		
-		
-		
-		
-		
+
 		// the predictions for each label
 		FloatMatrix[] hypothesisArr = Arrays.stream(thetas).map(theta -> LogisticRegression.predict(xTest, theta)).toArray(FloatMatrix[]::new);
 		
@@ -100,7 +97,15 @@ public class ExpertSystem {
 			int expectedLabel = (int)yTest.data[r];
 			
 			// TODO ... and find the strongest one (highest value) 
-			float hypothesisLabel = -1;
+			float maxPrediction = Float.NEGATIVE_INFINITY;
+			int hypothesisLabel = -1;
+			for (int i = 0; i < hypothesisArr.length; i++) {
+				float prediction = hypothesisArr[i].get(r);
+				if (prediction > maxPrediction) {
+					maxPrediction = prediction;
+					hypothesisLabel = i;
+				}
+			}
 
 			// count how many times the system found the right label
 			if(expectedLabel == hypothesisLabel)

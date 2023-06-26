@@ -61,45 +61,34 @@ public class CreditDataset implements Dataset {
 		System.out.println("Use "+testDataCount+" as test data with "+testDataPerCategory+" elements per category.\n");
 		
 		// TODO replace these lines with the real train and test data
-		//xTrain = xTest = xNorm;
-		//yTrain = yTest = y;
-
-		List<Integer> allIndices = new ArrayList<>();
-		for (int i = 0; i < data.getRows(); i++) {
-			allIndices.add(i);
-		}
-
+		// Split the data into training and test sets
 		List<Integer> testIndices = new ArrayList<>();
+		List<Integer> trainIndices = new ArrayList<>();
 
-		// Add test data indices for each category
 		for (int category : categories) {
 			List<Integer> categoryIndices = new ArrayList<>();
-			for (int i = 0; i < data.getRows(); i++) {
+			for (int i = 0; i < y.length; i++) {
 				if (y.get(i) == category) {
 					categoryIndices.add(i);
 				}
 			}
+
 			Collections.shuffle(categoryIndices, rnd);
 			testIndices.addAll(categoryIndices.subList(0, testDataPerCategory));
+			trainIndices.addAll(categoryIndices.subList(testDataPerCategory, categoryIndices.size()));
 		}
 
 		Collections.shuffle(testIndices, rnd);
+		Collections.shuffle(trainIndices, rnd);
 
-		// Get the test data
+		int[] testIndicesArray = testIndices.stream().mapToInt(i -> i).toArray();
+		int[] trainIndicesArray = trainIndices.stream().mapToInt(i -> i).toArray();
 
-		int [] testIndicesArray = testIndices.stream().mapToInt(i -> i).toArray();
-
-		xTest = xNorm.getRows(testIndicesArray);
-		yTest = y.getRows(testIndicesArray);
-
-		// Get the remaining data as training data
-		List<Integer> trainIndices = new ArrayList<>(allIndices);
-		trainIndices.removeAll(testIndices);
-
-		int [] trainIndicesArray = trainIndices.stream().mapToInt(i -> i).toArray();
+		// Set the train and test data
 		xTrain = xNorm.getRows(trainIndicesArray);
 		yTrain = y.getRows(trainIndicesArray);
-
+		xTest = xNorm.getRows(testIndicesArray);
+		yTest = y.getRows(testIndicesArray);
 
 	}
 	
@@ -134,6 +123,10 @@ public class CreditDataset implements Dataset {
 		}
 
 		Collections.shuffle(rowIndicesInverse, rnd);
+		if(rowIndices.size() > rowIndicesInverse.size()){
+			rowIndices = rowIndices.subList(0, rowIndicesInverse.size());
+		}
+
 		rowIndices.addAll(rowIndicesInverse.subList(0, rowIndices.size()));
 
 		int [] rowIndizies = rowIndices.stream().mapToInt(i -> i).toArray();
